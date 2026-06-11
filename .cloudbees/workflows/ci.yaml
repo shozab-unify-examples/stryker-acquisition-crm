@@ -73,7 +73,7 @@ jobs:
           artifact-id: ${{ needs.build.outputs.artifact-id }}
           name: acquisition-crm
           version: 1.4.${{ cloudbees.run_number }}
-          environment-name: acquisition-crm-dev
+          environment-name: stryker-dev
           url: https://github.com/shozab-unify-examples/stryker-acquisition-crm
 
   deploy-prod:
@@ -90,5 +90,5 @@ jobs:
           artifact-id: ${{ needs.build.outputs.artifact-id }}
           name: acquisition-crm
           version: 1.4.${{ cloudbees.run_number }}
-          environment-name: acquisition-crm-prod
+          environment-name: stryker-prod
           url: https://github.com/shozab-unify-examples/stryker-acquisition-crm
