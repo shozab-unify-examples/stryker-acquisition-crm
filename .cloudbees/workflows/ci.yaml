@@ -44,6 +44,8 @@ jobs:
     needs:
       - sast-scan
       - sca-scan
+    outputs:
+      artifact-id: ${{ steps.register-artifact.outputs.artifact-id }}
     steps:
       - name: Checkout
         uses: cloudbees-io/checkout@v1
@@ -53,6 +55,7 @@ jobs:
           npm ci --prefer-offline || npm install
           echo "Build complete — acquisition-crm v1.4.${{ cloudbees.run_number }}"
       - name: Register build artifact
+        id: register-artifact
         uses: cloudbees-io/register-build-artifact@v2
         with:
           name: acquisition-crm
@@ -66,7 +69,6 @@ jobs:
             - **Version**: 1.4.${{ cloudbees.run_number }}
             - **Classification**: MEDIUM | acquisition | unknown-coverage | first-60-days | non-osep
             - **Secrets Governance**: OPEN FINDING — no secrets scanning configured pre-acquisition
-            - **Owner**: CCI Operations
           format: MARKDOWN
 
   deploy-dev:
@@ -75,12 +77,11 @@ jobs:
     steps:
       - name: Deploy to Dev
         uses: docker://alpine:3.19
-        run: |
-          echo "Deploying acquisition-crm v1.4.${{ cloudbees.run_number }} to DEV"
-          echo "Platform: acquired (non-OSEP) | First-60-days assessment: INCOMPLETE"
+        run: echo "Deploying acquisition-crm v1.4.${{ cloudbees.run_number }} to DEV"
       - name: Register deployed artifact
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
+          artifact-id: ${{ needs.build.outputs.artifact-id }}
           name: acquisition-crm
           version: 1.4.${{ cloudbees.run_number }}
           environment-name: acquisition-crm-dev
@@ -88,15 +89,16 @@ jobs:
 
   deploy-prod:
     needs:
+      - build
       - deploy-dev
     steps:
       - name: Deploy to Production
         uses: docker://alpine:3.19
-        run: |
-          echo "Deploying acquisition-crm v1.4.${{ cloudbees.run_number }} to PRODUCTION"
+        run: echo "Deploying acquisition-crm v1.4.${{ cloudbees.run_number }} to PRODUCTION"
       - name: Register deployed artifact
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
+          artifact-id: ${{ needs.build.outputs.artifact-id }}
           name: acquisition-crm
           version: 1.4.${{ cloudbees.run_number }}
           environment-name: acquisition-crm-prod
