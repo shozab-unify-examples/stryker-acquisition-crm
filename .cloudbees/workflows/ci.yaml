@@ -8,52 +8,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  secrets-scan:
+  scan:
     steps:
       - name: Checkout
         uses: cloudbees-io/checkout@v1
-      - name: Secrets Detection
-        uses: cloudbees-io/trufflehog-secret-scan-code@v1
+      - name: Mock Secrets Scan
+        uses: docker://alpine:3.19
+        run: echo "[SCAN] Secrets scan complete — 4 findings (CRITICAL: Salesforce credentials, MongoDB URL)"
+      - name: Mock SAST Scan
+        uses: docker://alpine:3.19
+        run: echo "[SCAN] SAST scan complete — 2 findings (HIGH)"
+      - name: Publish Security Evidence
+        uses: cloudbees-io/publish-evidence-item@v1
         with:
-          branch: main
+          content: |
+            ## Security Scan Results — Acquisition CRM
+            | Scanner | Findings | Severity |
+            |---------|----------|----------|
+            | Secrets | 4 | CRITICAL |
+            | SAST | 2 | HIGH |
 
-  sast-scan:
-    needs:
-      - secrets-scan
-    steps:
-      - name: Checkout
-        uses: cloudbees-io/checkout@v1
-      - name: SAST Scan
-        uses: cloudbees-io/sonarqube-bundled-sast-scan-code@v2
-        with:
-          language: javascript
-
-  sca-scan:
-    needs:
-      - secrets-scan
-    steps:
-      - name: Checkout
-        uses: cloudbees-io/checkout@v1
-      - name: SCA — Dependency Vulnerability Scan
-        uses: cloudbees-io/snyk-sca-scan-dependency@v1
-        with:
-          snyk-token: ${{ secrets.SNYK_TOKEN }}
-          language: javascript
+            **Secrets Governance**: OPEN — Salesforce credentials and MongoDB URL hardcoded in src/salesforce_sync.js (CCI-SEC-001)
+            **Context**: Pre-acquisition — no secrets policy was enforced before Stryker acquisition
+            **SLA Status**: OVERDUE — breach of 7-day critical SLA
+          format: MARKDOWN
 
   build:
     needs:
-      - sast-scan
-      - sca-scan
+      - scan
     outputs:
       artifact-id: ${{ steps.register-artifact.outputs.artifact-id }}
     steps:
       - name: Checkout
         uses: cloudbees-io/checkout@v1
-      - name: Build CRM service
-        uses: docker://node:20-alpine
-        run: |
-          npm ci --prefer-offline || npm install
-          echo "Build complete — acquisition-crm v1.4.${{ cloudbees.run_number }}"
+      - name: Build
+        uses: docker://alpine:3.19
+        run: echo "Building acquisition-crm v1.4.${{ cloudbees.run_number }}"
       - name: Register build artifact
         id: register-artifact
         uses: cloudbees-io/register-build-artifact@v2
@@ -61,14 +51,13 @@ jobs:
           name: acquisition-crm
           version: 1.4.${{ cloudbees.run_number }}
           url: https://github.com/shozab-unify-examples/stryker-acquisition-crm
-      - name: Publish build evidence
+      - name: Publish Build Evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
           content: |
-            ## Acquisition CRM Build
-            - **Version**: 1.4.${{ cloudbees.run_number }}
-            - **Classification**: MEDIUM | acquisition | unknown-coverage | first-60-days | non-osep
-            - **Secrets Governance**: OPEN FINDING — no secrets scanning configured pre-acquisition
+            ## Build — Acquisition CRM v1.4.${{ cloudbees.run_number }}
+            - **Classification**: MEDIUM | acquisition | first-60-days | non-osep
+            - **Owner**: Commercial BU (acquired)
           format: MARKDOWN
 
   deploy-dev:
@@ -77,8 +66,8 @@ jobs:
     steps:
       - name: Deploy to Dev
         uses: docker://alpine:3.19
-        run: echo "Deploying acquisition-crm v1.4.${{ cloudbees.run_number }} to DEV"
-      - name: Register deployed artifact
+        run: echo "Deployed acquisition-crm v1.4.${{ cloudbees.run_number }} to DEV"
+      - name: Register Deployed Artifact
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
           artifact-id: ${{ needs.build.outputs.artifact-id }}
@@ -94,8 +83,8 @@ jobs:
     steps:
       - name: Deploy to Production
         uses: docker://alpine:3.19
-        run: echo "Deploying acquisition-crm v1.4.${{ cloudbees.run_number }} to PRODUCTION"
-      - name: Register deployed artifact
+        run: echo "Deployed acquisition-crm v1.4.${{ cloudbees.run_number }} to PRODUCTION"
+      - name: Register Deployed Artifact
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
           artifact-id: ${{ needs.build.outputs.artifact-id }}
