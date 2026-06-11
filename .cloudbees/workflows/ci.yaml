@@ -75,10 +75,7 @@ jobs:
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
           artifact-id: ${{ needs.build.outputs.artifact-id }}
-          name: acquisition-crm
-          version: 1.4.${{ cloudbees.run_number }}
           target-environment: stryker-dev
-          url: https://github.com/shozab-unify-examples/stryker-acquisition-crm
 
   deploy-prod:
     needs:
@@ -93,7 +90,4 @@ jobs:
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
           artifact-id: ${{ needs.build.outputs.artifact-id }}
-          name: acquisition-crm
-          version: 1.4.${{ cloudbees.run_number }}
           target-environment: stryker-prod
-          url: https://github.com/shozab-unify-examples/stryker-acquisition-crm
