@@ -14,10 +14,12 @@ jobs:
         uses: cloudbees-io/checkout@v1
       - name: Mock Secrets Scan
         uses: docker://alpine:3.19
-        run: echo "[SCAN] Secrets scan complete — 4 findings (CRITICAL: Salesforce credentials, MongoDB URL)"
+        run: |
+          echo "[SCAN] Secrets scan complete — 4 findings (CRITICAL: Salesforce credentials, MongoDB URL)"
       - name: Mock SAST Scan
         uses: docker://alpine:3.19
-        run: echo "[SCAN] SAST scan complete — 2 findings (HIGH)"
+        run: |
+          echo "[SCAN] SAST scan complete — 2 findings (HIGH)"
       - name: Publish Security Evidence
         uses: cloudbees-io/publish-evidence-item@v1
         with:
@@ -43,7 +45,8 @@ jobs:
         uses: cloudbees-io/checkout@v1
       - name: Build
         uses: docker://alpine:3.19
-        run: echo "Building acquisition-crm v1.4.${{ cloudbees.run_number }}"
+        run: |
+          echo "Building acquisition-crm v1.4.${{ cloudbees.run_number }}"
       - name: Register build artifact
         id: register-artifact
         uses: cloudbees-io/register-build-artifact@v2
@@ -66,7 +69,8 @@ jobs:
     steps:
       - name: Deploy to Dev
         uses: docker://alpine:3.19
-        run: echo "Deployed acquisition-crm v1.4.${{ cloudbees.run_number }} to DEV"
+        run: |
+          echo "Deployed acquisition-crm v1.4.${{ cloudbees.run_number }} to DEV"
       - name: Register Deployed Artifact
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
@@ -83,7 +87,8 @@ jobs:
     steps:
       - name: Deploy to Production
         uses: docker://alpine:3.19
-        run: echo "Deployed acquisition-crm v1.4.${{ cloudbees.run_number }} to PRODUCTION"
+        run: |
+          echo "Deployed acquisition-crm v1.4.${{ cloudbees.run_number }} to PRODUCTION"
       - name: Register Deployed Artifact
         uses: cloudbees-io/register-deployed-artifact@v2
         with:
