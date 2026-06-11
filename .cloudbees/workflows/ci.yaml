@@ -72,7 +72,6 @@ jobs:
   deploy-dev:
     needs:
       - build
-    environment: acquisition-crm-dev
     steps:
       - name: Deploy to Dev
         uses: docker://alpine:3.19
@@ -90,7 +89,6 @@ jobs:
   deploy-prod:
     needs:
       - deploy-dev
-    environment: acquisition-crm-prod
     steps:
       - name: Deploy to Production
         uses: docker://alpine:3.19
